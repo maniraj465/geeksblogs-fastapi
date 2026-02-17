@@ -1,102 +1,251 @@
-from fastapi import Depends, FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.exception_handlers import (
-    http_exception_handler,
-    request_validation_exception_handler,
-)
 from fastapi.responses import JSONResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from schemas import PostCreate, PostResponse
 
 app = FastAPI()
 
-templates = Jinja2Templates(directory="templates")
-
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.get("/", include_in_schema=False)
-@app.get("/home", include_in_schema=False, name="home")
-async def home(request: Request):
-    return templates.TemplateResponse(request, "home.html", {"posts": posts, "title": "Home"})
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/api/posts", name="post")
-async def post(request: Request):
-    return posts
+posts: list[dict] = [
+  {
+    "id": 1,
+    "author": "Sneha Kapoor",
+    "title": "UI/UX Design Principles",
+    "content": "Designing intuitive and user-friendly applications.",
+    "date_posted": "February 5, 2026",
+    "profile_pic": "g3.png"
+  },
+  {
+    "id": 2,
+    "author": "Rahul Mehta",
+    "title": "CI/CD with Jenkins",
+    "content": "Automating builds and deployments using Jenkins.",
+    "date_posted": "January 24, 2026",
+    "profile_pic": "b8.png"
+  },
+  {
+    "id": 3,
+    "author": "Neha Gupta",
+    "title": "Next.js Server Rendering",
+    "content": "SEO-friendly apps using Next.js SSR.",
+    "date_posted": "February 11, 2026",
+    "profile_pic": "g6.png"
+  },
+  {
+    "id": 4,
+    "author": "Vikram Singh",
+    "title": "Microservices Architecture",
+    "content": "Building scalable systems using microservices.",
+    "date_posted": "January 14, 2026",
+    "profile_pic": "b3.png"
+  },
+  {
+    "id": 5,
+    "author": "Shalini Arora",
+    "title": "Progressive Web Apps",
+    "content": "Offline-first web apps with PWA features.",
+    "date_posted": "February 15, 2026",
+    "profile_pic": "g8.png"
+  },
+  {
+    "id": 6,
+    "author": "Arjun Kumar",
+    "title": "Spring Boot Fundamentals",
+    "content": "Introduction to Spring Boot with real-world examples.",
+    "date_posted": "January 10, 2026",
+    "profile_pic": "b1.png"
+  },
+  {
+    "id": 7,
+    "author": "Ishita Banerjee",
+    "title": "Testing Frontend Apps",
+    "content": "End-to-end testing with Cypress and Jest.",
+    "date_posted": "February 19, 2026",
+    "profile_pic": "g10.png"
+  },
+  {
+    "id": 8,
+    "author": "Amit Verma",
+    "title": "Kafka Messaging Systems",
+    "content": "Event-driven communication using Apache Kafka.",
+    "date_posted": "January 20, 2026",
+    "profile_pic": "b6.png"
+  },
+  {
+    "id": 9,
+    "author": "Meera Ishan",
+    "title": "State Management with Redux",
+    "content": "Centralized state handling in frontend apps.",
+    "date_posted": "February 17, 2026",
+    "profile_pic": "g9.png"
+  },
+  {
+    "id": 10,
+    "author": "Rohit Sharma",
+    "title": "REST API Design Basics",
+    "content": "Understanding REST principles and best practices.",
+    "date_posted": "January 12, 2026",
+    "profile_pic": "b2.png"
+  },
+  {
+    "id": 11,
+    "author": "Kavya Reddy",
+    "title": "TypeScript for Beginners",
+    "content": "Strong typing and better tooling for JavaScript.",
+    "date_posted": "February 7, 2026",
+    "profile_pic": "g4.png"
+  },
+  {
+    "id": 12,
+    "author": "Suresh Patel",
+    "title": "Docker for Java Developers",
+    "content": "Containerizing Java applications using Docker.",
+    "date_posted": "January 16, 2026",
+    "profile_pic": "b4.png"
+  },
+  {
+    "id": 13,
+    "author": "Ritu Chawla",
+    "title": "Web Accessibility Standards",
+    "content": "Making applications usable for everyone.",
+    "date_posted": "February 13, 2026",
+    "profile_pic": "g7.png"
+  },
+  {
+    "id": 14,
+    "author": "Karan Malhotra",
+    "title": "Hibernate ORM Guide",
+    "content": "Mapping Java objects to relational databases.",
+    "date_posted": "January 18, 2026",
+    "profile_pic": "b5.png"
+  },
+  {
+    "id": 15,
+    "author": "Ananya Rao",
+    "title": "Angular UI Development",
+    "content": "Building dynamic user interfaces with Angular.",
+    "date_posted": "February 1, 2026",
+    "profile_pic": "g1.png"
+  },
+  {
+    "id": 16,
+    "author": "Nikhil Joshi",
+    "title": "Unit Testing with JUnit",
+    "content": "Writing reliable unit tests for Java applications.",
+    "date_posted": "January 22, 2026",
+    "profile_pic": "b7.png"
+  },
+  {
+    "id": 17,
+    "author": "Pooja Malhotra",
+    "title": "Frontend Performance Optimization",
+    "content": "Speeding up web apps using modern techniques.",
+    "date_posted": "February 9, 2026",
+    "profile_pic": "g5.png"
+  },
+  {
+    "id": 18,
+    "author": "Deepak Iyer",
+    "title": "Spring Security Essentials",
+    "content": "Implementing authentication and authorization.",
+    "date_posted": "January 26, 2026",
+    "profile_pic": "b9.png"
+  },
+  {
+    "id": 19,
+    "author": "Manoj Kulkarni",
+    "title": "GraphQL with Java",
+    "content": "Querying APIs efficiently using GraphQL.",
+    "date_posted": "January 28, 2026",
+    "profile_pic": "b10.png"
+  },
+  {
+    "id": 20,
+    "author": "Priya Nair",
+    "title": "React Hooks Deep Dive",
+    "content": "State and lifecycle management using React Hooks.",
+    "date_posted": "February 3, 2026",
+    "profile_pic": "g2.png"
+  }
+]
 
 
-@app.get("/posts", include_in_schema=False, name="post")
-async def post(request: Request):
-    return templates.TemplateResponse(request, "home.html", {"posts": posts, "title": "Posts"})
 
 
-@app.get("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
-async def user_posts_page(request: Request, user_id: int):
+@app.get("/", include_in_schema=False, name="home")
+@app.get("/posts", include_in_schema=False, name="posts")
+def home(request: Request):
     return templates.TemplateResponse(
         request,
-        "post.html",
-        {"posts": posts, "user": posts[user_id]['author'], "title": f"{posts[user_id]['author']}'s Posts"})
-
-@app.get("/api/posts/{post_id}")
-async def post_page(request: Request, post_id: int):
-    for post in posts:
-        if (post['id'] == post_id):
-            return post
-
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        "home.html",
+        {"posts": posts, "title": "Home"},
+    )
 
 
 @app.get("/posts/{post_id}", include_in_schema=False)
-async def post_page(request: Request, post_id: int):
+def post_page(request: Request, post_id: int):
     for post in posts:
-        if (post['id'] == post_id):
-            title = post['title'][:50]
-            return templates.TemplateResponse(request, "post.html", {"post": post, "title": title})
-
+        if post.get("id") == post_id:
+            title = post["title"][:50]
+            return templates.TemplateResponse(
+                request,
+                "post.html",
+                {"post": post, "title": title},
+            )
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
-@app.get("/login", include_in_schema=False)
-async def login_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "login.html",
-        {"title": "Login"},
-    )
+@app.get("/api/posts", response_model=list[PostResponse])
+def get_posts():
+    return posts
 
 
-@app.get("/register", include_in_schema=False)
-async def register_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "register.html",
-        {"title": "Register"},
-    )
+@app.post(
+    "/api/posts",
+    response_model=PostResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_post(post: PostCreate):
+    new_id = max(p["id"] for p in posts) + 1 if posts else 1
+    new_post = {
+        "id": new_id,
+        "author": post.author,
+        "title": post.title,
+        "content": post.content,
+        "date_posted": "April 23, 2025",
+    }
+    posts.append(new_post)
+    return new_post
 
 
-@app.get("/account", include_in_schema=False)
-async def account_page(request: Request):
-    return templates.TemplateResponse(
-        request,
-        "account.html",
-        {"title": "Account"},
-    )
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
+def get_post(post_id: int):
+    for post in posts:
+        if post.get("id") == post_id:
+            return post
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
 @app.exception_handler(StarletteHTTPException)
-async def general_http_exception_handler(
-    request: Request,
-    exception: StarletteHTTPException,
-):
-    if request.url.path.startswith("/api"):
-        return await http_exception_handler(request, exception)
-
+def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
     message = (
         exception.detail
         if exception.detail
         else "An error occurred. Please check your request and try again."
     )
+
+    if request.url.path.startswith("/api"):
+        return JSONResponse(
+            status_code=exception.status_code,
+            content={"detail": message},
+        )
 
     return templates.TemplateResponse(
         request,
@@ -111,12 +260,12 @@ async def general_http_exception_handler(
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request,
-    exception: RequestValidationError,
-):
+def validation_exception_handler(request: Request, exception: RequestValidationError):
     if request.url.path.startswith("/api"):
-        return await request_validation_exception_handler(request, exception)
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content={"detail": exception.errors()},
+        )
 
     return templates.TemplateResponse(
         request,
@@ -128,177 +277,3 @@ async def validation_exception_handler(
         },
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
     )
-
-
-
-
-
-posts: list[dict] = [
-    {
-    "id": 1,
-    "author": "Maniraj 1",
-    "title": "One day Crash Course Hands-on 1",
-    "content": "This is FastAPI Crash Course 1",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 2,
-    "author": "Maniraj 2",
-    "title": "One day Crash Course Hands-on 2",
-    "content": "This is FastAPI Crash Course 2",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 3,
-    "author": "Maniraj 3",
-    "title": "One day Crash Course Hands-on 3",
-    "content": "This is FastAPI Crash Course 3",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 4,
-    "author": "Maniraj 4",
-    "title": "One day Crash Course Hands-on 4",
-    "content": "This is FastAPI Crash Course 4",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 5,
-    "author": "Maniraj 5",
-    "title": "One day Crash Course Hands-on 5",
-    "content": "This is FastAPI Crash Course 5",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 6,
-    "author": "Maniraj 6",
-    "title": "One day Crash Course Hands-on 6",
-    "content": "This is FastAPI Crash Course 6",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 7,
-    "author": "Maniraj 7",
-    "title": "One day Crash Course Hands-on 7",
-    "content": "This is FastAPI Crash Course 7",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 8,
-    "author": "Maniraj 8",
-    "title": "One day Crash Course Hands-on 8",
-    "content": "This is FastAPI Crash Course 8",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 9,
-    "author": "Maniraj 9",
-    "title": "One day Crash Course Hands-on 9",
-    "content": "This is FastAPI Crash Course 9",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 10,
-    "author": "Maniraj 10",
-    "title": "One day Crash Course Hands-on 10",
-    "content": "This is FastAPI Crash Course 10",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 11,
-    "author": "Maniraj 11",
-    "title": "One day Crash Course Hands-on 11",
-    "content": "This is FastAPI Crash Course 11",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 12,
-    "author": "Maniraj 12",
-    "title": "One day Crash Course Hands-on 12",
-    "content": "This is FastAPI Crash Course 12",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 13,
-    "author": "Maniraj 13",
-    "title": "One day Crash Course Hands-on 13",
-    "content": "This is FastAPI Crash Course 13",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 14,
-    "author": "Maniraj 14",
-    "title": "One day Crash Course Hands-on 14",
-    "content": "This is FastAPI Crash Course 14",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 15,
-    "author": "Maniraj 15",
-    "title": "One day Crash Course Hands-on 15",
-    "content": "This is FastAPI Crash Course 15",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 16,
-    "author": "Maniraj 16",
-    "title": "One day Crash Course Hands-on 16",
-    "content": "This is FastAPI Crash Course 16",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 17,
-    "author": "Maniraj 17",
-    "title": "One day Crash Course Hands-on 17",
-    "content": "This is FastAPI Crash Course 17",
-    "date_posted": "February 15, 2026"
-    },
-    {
-    "id": 18,
-    "author": "Maniraj 18",
-    "title": "One day Crash Course Hands-on 18",
-    "content": "This is FastAPI Crash Course 18",
-    "date_posted": "February 15, 2026"
-    }
-]
-
-
-
-
-postsold: list[dict] = [
-    {
-    "id": "1",
-    "title": "Fix login bug",
-    "description": "Users cannot log in with special characters in password",
-    "priority": "high",
-    "status": "closed"
-    },
-    {
-    "id": "2",
-    "title": "Fix login bug2",
-    "description": "Users cannot log in with special characters in password 2",
-    "priority": "high",
-    "status": "open"
-    },
-    {
-    "id": "3",
-    "title": "Fix login bug3",
-    "description": "Users cannot log in with special characters in password 3",
-    "priority": "high",
-    "status": "open"
-    },
-    {
-    "id": "4",
-    "title": "Fix login bug4",
-    "description": "Users cannot log in with special characters in password 4",
-    "priority": "high",
-    "status": "open"
-    },
-    {
-    "id": "5",
-    "title": "Fix login bug5",
-    "description": "Users cannot log in with special characters in password 5",
-    "priority": "high",
-    "status": "open"
-    }
-]
