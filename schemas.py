@@ -2,9 +2,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PostBase(BaseModel):
-    title: str = Field(min_length=1, max_length=100)
-    content: str = Field(min_length=1)
-    author: str = Field(min_length=1, max_length=50)
+    title: str = Field(min_length=5, max_length=100)
+    content: str = Field(min_length=5)
+    author: str = Field(min_length=3, max_length=20)
 
 
 class PostCreate(PostBase):
@@ -16,3 +16,4 @@ class PostResponse(PostBase):
 
     id: int
     date_posted: str
+    profile_pic: str
